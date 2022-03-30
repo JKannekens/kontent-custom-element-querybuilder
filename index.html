@@ -49,7 +49,7 @@
     initCustomElement();
 
     function fetchTaxonomyGroups(config) {
-      const projectId = config?.projectId || '88b06727-8110-0160-dead-d386df41fce0'
+      const projectId = config?.projectId;
       if (!projectId)
         return;
 
@@ -128,8 +128,12 @@
     function updateDisabled(disabled) {
       if (disabled) {
         $(".btn").prop('disabled', true);
+        $("input[type=radio]").prop('disabled', true);
+        $(".form-control").prop('disabled', true);
       } else {
         $(".btn").prop('disabled', false);
+        $("input[type=radio]").prop('disabled', false);
+        $(".form-control").prop('disabled', false);
       }
       isDisabled = disabled;
     }
