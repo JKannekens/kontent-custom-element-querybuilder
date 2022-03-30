@@ -86,6 +86,8 @@
           id: taxonomy.system.name,
           label: taxonomy.system.name,
           type: 'string',
+          input: 'select',
+          values: taxonomy.terms.map(term => term.name),
           operators: ['equal', 'not_equal']
         }
       })
