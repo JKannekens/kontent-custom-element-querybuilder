@@ -35,7 +35,6 @@
           // Setup with initial value and disabled state
           config = element.config || {};
           initializeEditor(element.value, element.disabled, config);
-          updateSize();
         });
 
         // React on disabled changed (e.g. when publishing the item)
@@ -112,6 +111,7 @@
       });
 
       updateDisabled(isDisabled);
+      updateSize();
 
       // React on window resize to adjust the height
       window.addEventListener("resize", updateSize);
