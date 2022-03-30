@@ -61,31 +61,28 @@
       return data;
     }
 
-    // var rules_basic = {
-    //   condition: 'AND',
-    //   rules: [{
-    //     id: 'Sectoren',
-    //     operator: 'equal',
-    //     value: 'Test',
-    //     flags: {
-    //       filter_readonly: true,
-    //       operator_readonly: true,
-    //       value_readonly: true,
-    //       no_delete: true,
-    //     }
-    //   }]
-    // };
+    function getInitialValues(initialValue) {
+      if (!initialValue)
+        return null;
+
+      try {
+        const initialValues = JSON.parse(initialValue);
+        return initialValues
+      } catch (e) {
+        console.error(e);
+        return null;
+      }
+    }
 
 
     async function initializeEditor(initialValue, isDisabled, config) {
-      console.log(initialValue)
       isDisabled = false;
-      var taxonomyGroupData = await fetchTaxonomyGroups(config);
+      const taxonomyGroupData = await fetchTaxonomyGroups(config);
 
       if (!taxonomyGroupData || !taxonomyGroupData.taxonomies)
         return;
 
-      var taxonomyGroups = taxonomyGroupData.taxonomies.map(taxonomy => {
+      const taxonomyGroups = taxonomyGroupData.taxonomies.map(taxonomy => {
         return {
           id: taxonomy.system.name,
           label: taxonomy.system.name,
@@ -94,19 +91,21 @@
         }
       })
 
+      var initialValues = getInitialValues(initialValue);
+
       editorInstance = $('#builder').queryBuilder({
         plugins: [],
         filters: taxonomyGroups,
-        //rules: rules_basic
+        rules: initialValues
       });
 
       $('#builder').on('rulesChanged.queryBuilder', function (e) {
-        var data = $('#builder').queryBuilder('getRules', {
+        const data = $('#builder').queryBuilder('getRules', {
           get_flags: true,
           skip_empty: true,
         });
 
-        if (data) {
+        if (data && !isDisabled) {
           CustomElement.setValue(JSON.stringify(data));
         }
       });
@@ -116,13 +115,6 @@
 
       // React on window resize to adjust the height
       window.addEventListener("resize", updateSize);
-    }
-
-    function setValue(value) {
-      // Send updated value to Kentico (send null in case of the empty string => element will not meet required condition).
-      if (!isDisabled) {
-        CustomElement.setValue(value || null);
-      }
     }
 
     function updateSize() {
