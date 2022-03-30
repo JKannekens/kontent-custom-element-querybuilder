@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Markdown</title>
+  <!-- libs -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+  <script src="https://app.kontent.ai/js-api/custom-element/v1/custom-element.min.js"></script>
+  <script src="./scripts/query-builder.min.js"></script>
+  <script src="./scripts/query-builder.nl.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css"
+    integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+  <link rel="stylesheet" href="./styles/query-builder.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="col-md-12 col-lg-10 col-lg-offset-1">
+
+      <div id="builder"></div>
+
+    </div>
+  </div>
+
+  <!-- Custom element code -->
+  <script>
+    var editorInstance = null
+
+    function initCustomElement() {
+      try {
+        CustomElement.init((element, _context) => {
+          // Setup with initial value and disabled state
+          config = element.config || {};
+          initializeEditor(element.value, element.disabled, config);
+          updateSize();
+        });
+
+        // React on disabled changed (e.g. when publishing the item)
+        CustomElement.onDisabledChanged(updateDisabled);
+      } catch (err) {
+        // Initialization with Kentico Custom element API failed (page displayed outside of the Kentico UI)
+        console.error(err);
+        initializeEditor(err.toString());
+      }
+    }
+
+    initCustomElement();
+
+    function fetchTaxonomyGroups(config) {
+      const projectId = config?.projectId || '88b06727-8110-0160-dead-d386df41fce0'
+      if (!projectId) 
+        return;
+
+      const data = fetch(
+        `https://deliver.kontent.ai/${projectId}/taxonomies`
+      )
+        .then(response => response.json());
+
+      return data;
+    }
+
+    async function initializeEditor(initialValue, isDisabled, config) {
+      var taxonomyGroupData = await fetchTaxonomyGroups(config)
+
+      if (!taxonomyGroupData || !taxonomyGroupData.taxonomies)
+        return;
+
+      var taxonomyGroups = taxonomyGroupData.taxonomies.map(taxonomy => {
+        return {
+          id: taxonomy.system.name,
+          label: taxonomy.system.name,
+          type: 'string',
+          operators: ['equal', 'not_equal']
+        }
+      })
+
+      editorInstance = $('#builder').queryBuilder({
+        plugins: [],
+        filters: taxonomyGroups,
+      });
+
+      // Update initial disabled state
+      updateDisabled(isDisabled);
+
+      // React on window resize to adjust the height
+      window.addEventListener("resize", updateSize);
+    }
+
+    function setValue(value) {
+      // Send updated value to Kentico (send null in case of the empty string => element will not meet required condition).
+      if (!isDisabled) {
+        CustomElement.setValue(value || null);
+      }
+    }
+
+    function updateSize() {
+      // Update the custom element height in the Kentico UI.
+      const height = Math.ceil($("html").height());
+      CustomElement.setHeight(height);
+    }
+
+    var isDisabled = false;
+
+    function updateDisabled(disabled) {
+      if (editorInstance && editorInstance.codemirror) {
+        const $toolbar = $(".editor-toolbar");
+        editorInstance.codemirror.options.readOnly = disabled;
+        if (disabled) {
+          $toolbar.hide();
+        } else {
+          $toolbar.show();
+        }
+        updateSize();
+      }
+      isDisabled = disabled;
+    }
+  </script>
+</body>
+
+</html>
