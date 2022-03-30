@@ -57,7 +57,7 @@
 
     function fetchTaxonomyGroups(config) {
       const projectId = config?.projectId || '88b06727-8110-0160-dead-d386df41fce0'
-      if (!projectId) 
+      if (!projectId)
         return;
 
       const data = fetch(
@@ -68,8 +68,25 @@
       return data;
     }
 
+    // var rules_basic = {
+    //   condition: 'AND',
+    //   rules: [{
+    //     id: 'Sectoren',
+    //     operator: 'equal',
+    //     value: 'Test',
+    //     flags: {
+    //       filter_readonly: true,
+    //       operator_readonly: true,
+    //       value_readonly: true,
+    //       no_delete: true,
+    //     }
+    //   }]
+    // };
+
+
     async function initializeEditor(initialValue, isDisabled, config) {
-      var taxonomyGroupData = await fetchTaxonomyGroups(config)
+      isDisabled = false;
+      var taxonomyGroupData = await fetchTaxonomyGroups(config);
 
       if (!taxonomyGroupData || !taxonomyGroupData.taxonomies)
         return;
@@ -86,9 +103,20 @@
       editorInstance = $('#builder').queryBuilder({
         plugins: [],
         filters: taxonomyGroups,
+        //rules: rules_basic
       });
 
-      // Update initial disabled state
+      $('#builder').on('rulesChanged.queryBuilder', function (e) {
+        var data = $('#builder').queryBuilder('getRules', {
+          get_flags: true,
+          skip_empty: true,
+        });
+
+        if (data) {
+          //CustomElement.setValue(JSON.stringify(data));
+        }
+      });
+
       updateDisabled(isDisabled);
 
       // React on window resize to adjust the height
@@ -109,17 +137,11 @@
     }
 
     var isDisabled = false;
-
     function updateDisabled(disabled) {
-      if (editorInstance && editorInstance.codemirror) {
-        const $toolbar = $(".editor-toolbar");
-        editorInstance.codemirror.options.readOnly = disabled;
-        if (disabled) {
-          $toolbar.hide();
-        } else {
-          $toolbar.show();
-        }
-        updateSize();
+      if (isDisabled) {
+        $(".btn").prop('disabled', true);
+      } else {
+        $(".btn").prop('disabled', false);
       }
       isDisabled = disabled;
     }
