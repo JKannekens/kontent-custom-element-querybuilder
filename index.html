@@ -78,6 +78,7 @@
 
 
     async function initializeEditor(initialValue, isDisabled, config) {
+      console.log(initialValue)
       isDisabled = false;
       var taxonomyGroupData = await fetchTaxonomyGroups(config);
 
